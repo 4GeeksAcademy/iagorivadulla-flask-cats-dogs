@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Images Classificator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .upload-box {
+            width: 350px;
+            height: 200px;
+            border: 3px dashed #6c63ff;
+            border-radius: 15px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            cursor: pointer;
+            background: white;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: #f7f7ff;
+        }
+
+        #preview {
+            margin-top: 20px;
+            max-width: 300px;
+            display: block;
+            margin-right: auto;
+            margin-left: auto;
+            justify-content: center;
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload an image 🐱🐶</h1>
+
+    <!-- Cuadro para subir imagen -->
+    <label class="upload-box" for="fileInput">
+        Click or drag a picture
+    </label>
+
+    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
+    <!-- Vista previa -->
+    <img id="preview">
+
+    <!-- Resultado -->
+    <div id="result"></div>
+
+    <script>
+        const input = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const result = document.getElementById('result');
+
+        input.addEventListener('change', async () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Mostrar vista previa
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = "block";
+
+            // Enviar imagen al servidor Flask
+            const formData = new FormData();
+            formData.append("file", file);
+
+            result.innerHTML = "Processing..."
+
+            const response = await fetch("/predict", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            result.innerHTML = `This is a: <b>${data.prediction}</b> <br>
+                                With a probability of: ${(data.probability * 100).toFixed(2)}%`;
+        });
+    </script>
+
+</body>
+</html>
