@@ -3,4 +3,5 @@ pillow
 scikit-learn
 matplotlib
 requests
+huggingface_hub
 gunicorn
