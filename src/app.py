@@ -4,11 +4,18 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 import io
+from huggingface_hub import hf_hub_download
+
+#using hugging face to upload my model and use it cause github dosnt allow 1gb+ archives
+model_path = hf_hub_download(
+    repo_id="jamirc/cat_dog_classifier",
+    filename="model.h5")
+
 
 app = Flask(__name__)
 
 # Load the model model
-model = load_model('../models/model.h5', compile= False)
+model = load_model(model_path, compile= False)
 
 NAMES = ['Cat', 'Dog']   # 0 = Cat, 1 = Dog
 
