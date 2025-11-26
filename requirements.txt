@@ -2,6 +2,7 @@ flask
 pillow
 scikit-learn
 matplotlib
+tensorflow
 requests
 huggingface_hub
 gunicorn
