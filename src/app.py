@@ -1,59 +1,53 @@
 from flask import Flask, request, jsonify, render_template
-from huggingface_hub import hf_hub_download
-from PIL import Image
 import numpy as np
+from PIL import Image
 import io
-import tensorflow.lite as tflite
 
-app = Flask(__name__)
+from huggingface_hub import hf_hub_download
+import tflite_runtime.interpreter as tflite
 
-NAMES = ['Cat', 'Dog']
 
-# Download model from HuggingFace
+# Descargar modelo desde HuggingFace (debe ser .tflite)
 model_path = hf_hub_download(
     repo_id="jamirc/cat_dog_classifier",
     filename="model.tflite"
 )
 
-# Load TFLite model (super lightweight)
-interpreter = tflite.Interpreter(model_path=model_path)
-interpreter.allocate_tensors()
+app = Flask(__name__)
 
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+NAMES = ['Cat', 'Dog']
 
 
 def load_image_from_bytes(file_bytes):
-
     img = Image.open(io.BytesIO(file_bytes)).resize((200, 200))
-    img = img.convert("RGB")
-
-    img_array = np.array(img).astype("float32") / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
-
-    return img_array
+    img_array = np.array(img) / 255.0
+    return np.expand_dims(img_array.astype(np.float32), axis=0)
 
 
 def predict_image(img_array):
+    interpreter = tflite.Interpreter(model_path=model_path)
+    interpreter.allocate_tensors()
 
-    interpreter.set_tensor(input_details[0]['index'], img_array)
+    input_index = interpreter.get_input_details()[0]["index"]
+    output_index = interpreter.get_output_details()[0]["index"]
+
+    interpreter.set_tensor(input_index, img_array)
     interpreter.invoke()
 
-    output = interpreter.get_tensor(output_details[0]['index'])
-    idx = int(np.argmax(output))
-    prob = float(np.max(output))
+    pred = interpreter.get_tensor(output_index)
+    idx = np.argmax(pred)
+    prob = float(np.max(pred))
 
     return NAMES[idx], prob
 
 
 @app.route('/')
 def home():
-    return render_template("index.html")
+    return render_template('index.html')
 
 
 @app.route('/predict', methods=['POST'])
 def predict_route():
-
     if 'file' not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
 
@@ -62,12 +56,9 @@ def predict_route():
 
     label, prob = predict_image(img_array)
 
-    return jsonify({
-        "prediction": label,
-        "probability": prob
-    })
+    return jsonify({"prediction": label, "probability": prob})
 
 
-if __name__ == "__main__":
-    app.run()
+if __name__ == '__main__':
+    app.run(debug=True)
 
