@@ -7,7 +7,7 @@ from huggingface_hub import hf_hub_download
 import tflite_runtime.interpreter as tflite
 
 
-# Descargar modelo desde HuggingFace (debe ser .tflite)
+# Download model from my huggingface
 model_path = hf_hub_download(
     repo_id="jamirc/cat_dog_classifier",
     filename="model.tflite"
@@ -17,13 +17,13 @@ app = Flask(__name__)
 
 NAMES = ['Cat', 'Dog']
 
-
+#loads the image
 def load_image_from_bytes(file_bytes):
     img = Image.open(io.BytesIO(file_bytes)).resize((200, 200))
     img_array = np.array(img) / 255.0
     return np.expand_dims(img_array.astype(np.float32), axis=0)
 
-
+#calls the model and predicts the image
 def predict_image(img_array):
     interpreter = tflite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
