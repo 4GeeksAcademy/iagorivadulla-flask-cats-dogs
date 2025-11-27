@@ -1,8 +1,7 @@
-flask
-pillow
-scikit-learn
-matplotlib
-tensorflow-cpu==2.20.0
-requests
-huggingface_hub
+Flask==3.1.0
+tflite-runtime==2.14.0
+huggingface_hub==0.24.6
+numpy==1.26.4
+Pillow
 gunicorn
+
